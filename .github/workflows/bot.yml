@@ -75,8 +75,12 @@ jobs:
         env:
           SESSION_PASSWORD: ${{ secrets.SESSION_PASSWORD }}
         run: |
-          # Zip using the secret password
-          zip -P "$SESSION_PASSWORD" -r session.zip .wwebjs_auth .wwebjs_cache
+          # Zip with password only if it exists, otherwise do a normal zip
+          if [ -n "$SESSION_PASSWORD" ]; then
+            zip -P "$SESSION_PASSWORD" -r session.zip .wwebjs_auth .wwebjs_cache
+          else
+            zip -r session.zip .wwebjs_auth .wwebjs_cache
+          fi
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add session.zip
