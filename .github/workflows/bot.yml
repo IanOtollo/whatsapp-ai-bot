@@ -5,8 +5,8 @@ on:
   push:
     branches: [ master ]
   schedule:
-    # Runs at 6 AM, 12 PM, and 6 PM UTC (covers ~9 AM to ~3 AM local)
-    - cron: '0 6,12,18 * * *'
+    # Runs every 6 hours 24/7
+    - cron: '0 0,6,12,18 * * *'
   workflow_dispatch: # Allows manual start
 
 jobs:
@@ -40,10 +40,12 @@ jobs:
           npm install
 
       - name: Restore Session
+        env:
+          SESSION_PASSWORD: ${{ secrets.SESSION_PASSWORD }}
         run: |
           if [ -f "session.zip" ]; then
-            # Ignore warnings (exit code 1) from unzip (common with Windows zips)
-            unzip -o session.zip || [ $? -eq 1 ]
+            # Unzip using the secret password
+            unzip -P "$SESSION_PASSWORD" session.zip
             echo "Session restored."
           else
             echo "No session zip found. Starting fresh."
@@ -59,15 +61,18 @@ jobs:
           AI_SIGNATURE: ${{ secrets.AI_SIGNATURE }}
           GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
         run: |
-          # Use xvfb-run to provide a virtual display for Puppeteer
+          # Use xvfb-run for virtual display
           xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" timeout 6h node index.js || echo "Bot timed out or crashed."
 
       - name: Save Session
         if: always()
+        env:
+          SESSION_PASSWORD: ${{ secrets.SESSION_PASSWORD }}
         run: |
-          zip -r session.zip .wwebjs_auth .wwebjs_cache || true
+          # Zip using the secret password
+          zip -P "$SESSION_PASSWORD" -r session.zip .wwebjs_auth .wwebjs_cache
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add session.zip
-          git commit -m "Update WhatsApp session" || echo "No changes to session"
+          git commit -m "Update WhatsApp session (Encrypted)" || echo "No changes to session"
           git push
