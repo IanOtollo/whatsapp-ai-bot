@@ -75,11 +75,16 @@ jobs:
         env:
           SESSION_PASSWORD: ${{ secrets.SESSION_PASSWORD }}
         run: |
-          # Zip with password only if it exists, otherwise do a normal zip
+          # Ensure any remaining node/chrome processes are killed before zipping
+          pkill -f node || true
+          pkill -f chrome || true
+          
+          # Zip with password only if it exists
+          # We ignore exit code 18 (some files unreadable) as it often happens with LOCK files
           if [ -n "$SESSION_PASSWORD" ]; then
-            zip -P "$SESSION_PASSWORD" -r session.zip .wwebjs_auth .wwebjs_cache
+            zip -P "$SESSION_PASSWORD" -r session.zip .wwebjs_auth .wwebjs_cache || [ $? -eq 18 ]
           else
-            zip -r session.zip .wwebjs_auth .wwebjs_cache
+            zip -r session.zip .wwebjs_auth .wwebjs_cache || [ $? -eq 18 ]
           fi
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
