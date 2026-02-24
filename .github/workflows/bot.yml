@@ -44,9 +44,15 @@ jobs:
           SESSION_PASSWORD: ${{ secrets.SESSION_PASSWORD }}
         run: |
           if [ -f "session.zip" ]; then
-            # Unzip using the secret password
-            unzip -P "$SESSION_PASSWORD" session.zip
-            echo "Session restored."
+            echo "Attempting to restore session..."
+            # Try unzipping with password first, then without. 
+            # We ignore exit code 1 because Windows-created zips often cause 'backslash' warnings.
+            if [ -n "$SESSION_PASSWORD" ]; then
+              unzip -P "$SESSION_PASSWORD" -o session.zip || [ $? -eq 1 ]
+            else
+              unzip -o session.zip || [ $? -eq 1 ]
+            fi
+            echo "Session restore completed (checked for warnings)."
           else
             echo "No session zip found. Starting fresh."
           fi
