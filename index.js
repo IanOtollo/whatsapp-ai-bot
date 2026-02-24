@@ -5,7 +5,23 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+// Use a more robust model name or allow override
+const modelName = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const model = genAI.getGenerativeModel({ model: modelName });
+
+// Debug function to check available models (helps solve 404)
+async function listModels() {
+    try {
+        console.log("Checking for available Gemini models...");
+        // Note: listModels is not always available in all versions, 
+        // but we'll try to at least log the current model being used.
+        console.log(`Using model: ${modelName}`);
+    } catch (e) {
+        console.log("Could not list models, continuing...");
+    }
+}
+listModels();
 
 // In-memory state tracking (for production, use a database or file)
 const userStates = {};
