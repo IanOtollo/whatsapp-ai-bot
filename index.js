@@ -129,11 +129,16 @@ Please reply with 1 or 2.`;
             message.reply(text + signature);
         } catch (error) {
             console.error('ERROR WITH GEMINI API:', error);
-            // More descriptive error for logging purposes
-            if (error.message.includes('safety')) {
+            let errorMessage = "Sorry, I'm having trouble thinking right now. Please try again later.";
+
+            if (error.message && error.message.includes('safety')) {
                 console.log('Gemini blocked this message due to safety filters.');
+                errorMessage = "I'm sorry, I can't respond to that particular topic. Let's talk about something else!";
+            } else if (error.message && error.message.includes('404')) {
+                errorMessage = "I'm having a bit of an identity crisis (Model Error 404). Ian needs to update my model settings!";
             }
-            message.reply("Sorry, I'm having trouble thinking right now. Please try again later.");
+
+            message.reply(errorMessage);
         }
     }
 
