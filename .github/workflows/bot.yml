@@ -2,6 +2,8 @@
 name: WhatsApp AI Bot
 
 on:
+  push:
+    branches: [ master ]
   schedule:
     # Runs every 6 hours from 6 AM to 10 PM UTC
     - cron: '0 6,12,18 * * *'
