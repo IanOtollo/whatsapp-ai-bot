@@ -42,7 +42,8 @@ jobs:
       - name: Restore Session
         run: |
           if [ -f "session.zip" ]; then
-            unzip session.zip
+            # Ignore warnings (exit code 1) from unzip (common with Windows zips)
+            unzip -o session.zip || [ $? -eq 1 ]
             echo "Session restored."
           else
             echo "No session zip found. Starting fresh."
@@ -56,9 +57,10 @@ jobs:
           EXCLUDED_NUMBERS: ${{ secrets.EXCLUDED_NUMBERS }}
           PERSONA_PROMPT: ${{ secrets.PERSONA_PROMPT }}
           AI_SIGNATURE: ${{ secrets.AI_SIGNATURE }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
         run: |
-          # Run for 6 hours (max limit) or until it crashes
-          timeout 6h node index.js || echo "Bot timed out or crashed."
+          # Use xvfb-run to provide a virtual display for Puppeteer
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" timeout 6h node index.js || echo "Bot timed out or crashed."
 
       - name: Save Session
         if: always()
