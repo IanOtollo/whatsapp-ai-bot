@@ -5,8 +5,8 @@ on:
   push:
     branches: [ master ]
   schedule:
-    # Runs every 6 hours 24/7
-    - cron: '0 0,6,12,18 * * *'
+    # Runs only during the day (6 AM and 12 PM UTC)
+    - cron: '0 6,12 * * *'
   workflow_dispatch: # Allows manual start
 
 jobs:
